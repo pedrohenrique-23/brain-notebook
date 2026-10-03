@@ -1,0 +1,6 @@
+{
+  "name": "Caderno Digital",
+  "description": "Sistema pessoal de organização inspirado no Notion, Bullet Journal e caderno físico.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,1225 @@
+/* ==========================================================================
+   CADERNO DIGITAL - SISTEMA VISUAL DE CADERNO FÍSICO / BULLET JOURNAL
+   Estilo 100% CSS Puro (Sem Tailwind)
+   ========================================================================== */
+
+:root {
+  /* Paleta Base Papel */
+  --bg-desk: #ECE6D8;
+  --bg-paper: #F7F3EA;
+  --bg-paper-subtle: #EFE8D8;
+  --bg-paper-card: #FAF7F0;
+  --bg-paper-white: #FFFFFF;
+  
+  /* Cores de Tinta / Tipografia */
+  --ink-primary: #1F1F1F;
+  --ink-secondary: #5C5852;
+  --ink-muted: #8F8A80;
+  --ink-faint: #C4BEB1;
+
+  /* Bordas e Linhas de Caderno */
+  --border-paper: #E2DAC8;
+  --border-paper-dark: #C8BEA8;
+  --rule-line: rgba(140, 130, 110, 0.15);
+  --rule-dot: rgba(140, 130, 110, 0.25);
+
+  /* Tons de Post-it e Destaque Suave */
+  --postit-yellow: #FCF5C7;
+  --postit-yellow-border: #E8DD94;
+  --postit-green: #E8F5E9;
+  --postit-green-border: #C1E1C5;
+  --postit-blue: #E8F1F5;
+  --postit-blue-border: #BCD1DF;
+  --postit-peach: #FAECE5;
+  --postit-peach-border: #E8C8BA;
+  --postit-purple: #F3EAF7;
+  --postit-purple-border: #DDC5E8;
+  --postit-sand: #FAF5EB;
+  --postit-sand-border: #DCD3C1;
+
+  /* Detalhes de Encadernação e Acento */
+  --accent-ink: #2C2825;
+  --accent-terracotta: #8C4835;
+  --accent-sage: #4E6348;
+  --tape-color: rgba(235, 225, 205, 0.75);
+
+  /* Tipografia */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-script: 'Caveat', cursive, serif;
+
+  /* Sombras de Papel */
+  --shadow-notebook: 0 12px 35px -8px rgba(50, 42, 30, 0.15), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-page: 0 4px 14px rgba(60, 50, 35, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 2px 8px rgba(60, 50, 35, 0.05);
+  --shadow-postit: 0 4px 10px rgba(70, 55, 30, 0.09), 0 1px 2px rgba(0,0,0,0.05);
+
+  /* Raios de Borda */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-notebook: 14px;
+}
+
+/* Reset Básico */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  background-color: var(--bg-desk);
+  color: var(--ink-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+  color: inherit;
+  font-size: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   LAYOUT GERAL: A MESA E O CADERNO ABERTO
+   ========================================================================== */
+
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background-color: var(--bg-desk);
+  /* Textura suave de mesa de madeira / linho sutil */
+  background-image: 
+    radial-gradient(var(--rule-dot) 0.75px, transparent 0.75px);
+  background-size: 24px 24px;
+}
+
+.notebook-container {
+  display: flex;
+  flex: 1;
+  max-width: 1380px;
+  width: 100%;
+  margin: 0 auto;
+  background-color: var(--bg-paper);
+  border-radius: var(--radius-notebook);
+  box-shadow: var(--shadow-notebook);
+  border: 1px solid var(--border-paper-dark);
+  position: relative;
+  overflow: hidden;
+  min-height: 880px;
+}
+
+/* Lombada / Costura do caderno central */
+.notebook-spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 279px;
+  width: 2px;
+  background: linear-gradient(
+    to right,
+    rgba(140, 125, 100, 0.25),
+    rgba(255, 255, 255, 0.4),
+    rgba(140, 125, 100, 0.3)
+  );
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   SUMÁRIO (SIDEBAR)
+   ========================================================================== */
+
+.notebook-sidebar {
+  width: 280px;
+  min-width: 280px;
+  background-color: var(--bg-paper-subtle);
+  border-right: 1px solid var(--border-paper);
+  display: flex;
+  flex-direction: column;
+  padding: 2.25rem 1.5rem 1.75rem 1.75rem;
+  position: relative;
+  z-index: 5;
+}
+
+.sidebar-header {
+  margin-bottom: 2.5rem;
+}
+
+.notebook-title {
+  font-family: var(--font-script);
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: var(--ink-primary);
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.5px;
+}
+
+.notebook-subtitle {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ink-secondary);
+  font-weight: 600;
+}
+
+.sidebar-nav-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  color: var(--ink-muted);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-paper);
+}
+
+.sidebar-nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.nav-item-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  transition: all 0.15s ease;
+  text-align: left;
+  position: relative;
+}
+
+.nav-item-btn:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+  color: var(--ink-primary);
+}
+
+.nav-item-btn.active {
+  background-color: var(--bg-paper);
+  color: var(--ink-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-paper);
+}
+
+.nav-item-btn.active::before {
+  content: "•";
+  position: absolute;
+  left: 0.35rem;
+  color: var(--accent-terracotta);
+  font-size: 1.2rem;
+}
+
+.nav-number {
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  width: 2.2rem;
+  margin-left: 0.2rem;
+}
+
+.nav-item-btn.active .nav-number {
+  color: var(--accent-terracotta);
+}
+
+.nav-label {
+  flex: 1;
+}
+
+.nav-badge-count {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+  background-color: rgba(0,0,0,0.04);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background-color: var(--border-paper);
+  margin: 1.25rem 0;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: var(--ink-secondary);
+  transition: all 0.15s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.footer-btn:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+  color: var(--ink-primary);
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.85rem;
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.5rem;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   CONTEÚDO PRINCIPAL (PÁGINA DO CADERNO)
+   ========================================================================== */
+
+.notebook-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-paper);
+  position: relative;
+  overflow-y: auto;
+  max-height: calc(100vh - 3rem);
+}
+
+/* Efeito de folhas pautadas ou pontilhadas sutil de bullet journal */
+.page-sheet {
+  padding: 2.5rem 3rem;
+  flex: 1;
+  max-width: 1060px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Cabeçalho da Página no Estilo Diário Pessoal */
+.journal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-paper);
+  position: relative;
+}
+
+.journal-header::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 60px;
+  height: 2px;
+  background-color: var(--accent-terracotta);
+}
+
+.journal-date-badge {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ink-muted);
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.journal-heading-script {
+  font-family: var(--font-script);
+  font-size: 2.8rem;
+  color: var(--ink-primary);
+  line-height: 1;
+  font-weight: 700;
+}
+
+.journal-heading-print {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  letter-spacing: -0.5px;
+}
+
+.journal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Botões do Caderno */
+.btn-ink-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--ink-primary);
+  color: #FFFFFF;
+  padding: 0.6rem 1.15rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-ink-primary:hover {
+  background-color: #383430;
+  transform: translateY(-1px);
+}
+
+.btn-ink-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--bg-paper-subtle);
+  color: var(--ink-primary);
+  border: 1px solid var(--border-paper);
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-ink-secondary:hover {
+  background-color: #E6DECB;
+  border-color: var(--border-paper-dark);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--ink-secondary);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-ghost:hover {
+  color: var(--ink-primary);
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* ==========================================================================
+   DASHBOARD / HOME PAGE
+   ========================================================================== */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.dashboard-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.section-block {
+  background-color: var(--bg-paper-card);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-card);
+  position: relative;
+}
+
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.15rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px dashed var(--border-paper);
+}
+
+.section-title-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.section-title {
+  font-family: var(--font-script);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--ink-primary);
+  line-height: 1;
+}
+
+.section-subtitle-print {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   TAREFAS (BULLET JOURNAL STYLE)
+   ========================================================================== */
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background-color: var(--bg-paper-white);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.task-item:hover {
+  border-color: var(--border-paper-dark);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.task-item.completed {
+  background-color: rgba(245, 240, 230, 0.4);
+}
+
+.task-item.completed .task-title {
+  text-decoration: line-through;
+  color: var(--ink-muted);
+}
+
+/* Bullet Journal Checkbox: ○ Pendente, ◐ Em andamento, ● Concluída */
+.bujo-bullet-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--ink-primary);
+  margin-top: 1px;
+  transition: transform 0.1s ease;
+}
+
+.bujo-bullet-btn:hover {
+  transform: scale(1.15);
+}
+
+.bujo-bullet-btn.pending {
+  color: var(--ink-secondary);
+}
+
+.bujo-bullet-btn.in_progress {
+  color: var(--accent-terracotta);
+}
+
+.bujo-bullet-btn.completed {
+  color: var(--accent-sage);
+}
+
+.task-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink-primary);
+  word-break: break-word;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.task-tag {
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+}
+
+.task-date {
+  font-variant-numeric: tabular-nums;
+}
+
+.task-priority-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 0.35rem;
+}
+
+.priority-high {
+  background-color: var(--accent-terracotta);
+}
+
+.priority-medium {
+  background-color: #D97706;
+}
+
+.priority-low {
+  background-color: #8C8476;
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.task-item:hover .task-actions {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   HÁBITOS (SEMANA & BULLETS)
+   ========================================================================== */
+
+.habit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.habit-card {
+  background-color: var(--bg-paper-white);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.1rem;
+  transition: border-color 0.15s ease;
+}
+
+.habit-card:hover {
+  border-color: var(--border-paper-dark);
+}
+
+.habit-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.habit-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink-primary);
+}
+
+.habit-target-badge {
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+  font-weight: 500;
+}
+
+.habit-tracker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.habit-week-grid {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.habit-day-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.habit-day-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  letter-spacing: 0.5px;
+}
+
+.habit-day-label.is-today {
+  color: var(--accent-terracotta);
+  font-weight: 700;
+}
+
+.habit-circle-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-paper-dark);
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: transparent;
+  transition: all 0.15s ease;
+}
+
+.habit-circle-btn:hover {
+  border-color: var(--ink-primary);
+  transform: scale(1.1);
+}
+
+.habit-circle-btn.done {
+  background-color: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #FFFFFF;
+}
+
+.habit-streak-info {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.habit-streak-info strong {
+  color: var(--ink-primary);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   ANOTAÇÕES (ESTILO FOLHA E POST-IT)
+   ========================================================================== */
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.note-card {
+  position: relative;
+  padding: 1.25rem;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-postit);
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.note-card:hover {
+  transform: translateY(-3px) rotate(-0.5deg);
+  box-shadow: 0 8px 18px rgba(70, 55, 30, 0.12);
+}
+
+/* Fita adesiva decorativa (washi tape) no topo */
+.note-washi-tape {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 18px;
+  background-color: var(--tape-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-left: 2px dashed rgba(200, 190, 170, 0.6);
+  border-right: 2px dashed rgba(200, 190, 170, 0.6);
+  pointer-events: none;
+}
+
+/* Variações de Cor de Notas */
+.note-sand {
+  background-color: var(--postit-sand);
+  border-color: var(--postit-sand-border);
+}
+
+.note-yellow {
+  background-color: var(--postit-yellow);
+  border-color: var(--postit-yellow-border);
+}
+
+.note-green {
+  background-color: var(--postit-green);
+  border-color: var(--postit-green-border);
+}
+
+.note-blue {
+  background-color: var(--postit-blue);
+  border-color: var(--postit-blue-border);
+}
+
+.note-peach {
+  background-color: var(--postit-peach);
+  border-color: var(--postit-peach-border);
+}
+
+.note-purple {
+  background-color: var(--postit-purple);
+  border-color: var(--postit-purple-border);
+}
+
+.note-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.note-title {
+  font-family: var(--font-script);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink-primary);
+  margin-right: 0.5rem;
+}
+
+.note-content {
+  font-size: 0.88rem;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-footer {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  border-top: 1px dashed rgba(120, 110, 95, 0.2);
+  padding-top: 0.5rem;
+}
+
+/* ==========================================================================
+   METAS & VISION BOARD (MURAL DE SONHOS)
+   ========================================================================== */
+
+.vision-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.75rem;
+}
+
+.vision-item-card {
+  background-color: var(--bg-paper-white);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-md);
+  padding: 1.15rem;
+  box-shadow: var(--shadow-page);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vision-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(60, 50, 35, 0.1);
+}
+
+.vision-photo-frame {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-paper-subtle);
+  margin-bottom: 0.85rem;
+  border: 1px solid var(--border-paper);
+  position: relative;
+}
+
+.vision-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vision-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(235, 230, 218, 0.3),
+    rgba(235, 230, 218, 0.3) 10px,
+    rgba(247, 243, 234, 0.3) 10px,
+    rgba(247, 243, 234, 0.3) 20px
+  );
+}
+
+.vision-card-title {
+  font-family: var(--font-script);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink-primary);
+  line-height: 1.15;
+  margin-bottom: 0.35rem;
+}
+
+.vision-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-bottom: 0.75rem;
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background-color: var(--bg-paper-subtle);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border-paper);
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--ink-primary);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progress-values-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.4rem;
+  color: var(--ink-secondary);
+}
+
+/* ==========================================================================
+   FILTROS E CONTROLES SEGMENTADOS
+   ========================================================================== */
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-paper);
+}
+
+.filter-tab-btn {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.filter-tab-btn:hover {
+  color: var(--ink-primary);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.filter-tab-btn.active {
+  background-color: var(--bg-paper-white);
+  color: var(--ink-primary);
+  font-weight: 600;
+  border-color: var(--border-paper);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+/* ==========================================================================
+   MODAIS E FORMULÁRIOS ESTILO FOLHA DE ANOTAÇÃO
+   ========================================================================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(35, 30, 20, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+.modal-sheet {
+  background-color: var(--bg-paper);
+  border: 1px solid var(--border-paper-dark);
+  border-radius: var(--radius-notebook);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-sheet-header {
+  padding: 1.5rem 1.75rem 1rem 1.75rem;
+  border-bottom: 1px solid var(--border-paper);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-sheet-title {
+  font-family: var(--font-script);
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: var(--ink-primary);
+  line-height: 1;
+}
+
+.modal-sheet-body {
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.modal-sheet-footer {
+  padding: 1rem 1.75rem 1.5rem 1.75rem;
+  border-top: 1px solid var(--border-paper);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-secondary);
+}
+
+.form-input, .form-textarea, .form-select {
+  background-color: var(--bg-paper-white);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.85rem;
+  color: var(--ink-primary);
+  font-size: 0.92rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--ink-primary);
+  box-shadow: 0 0 0 2px rgba(31, 31, 31, 0.08);
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ==========================================================================
+   CODE BLOCK / SQL VIEWER (SUPABASE SCRIPT)
+   ========================================================================== */
+
+.sql-box {
+  background-color: #242220;
+  color: #F2EFE9;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  max-height: 280px;
+  border: 1px solid #383430;
+}
+
+/* ==========================================================================
+   BARRA MOBILE E RESPONSIVIDADE
+   ========================================================================== */
+
+.mobile-nav-bar {
+  display: none;
+  background-color: var(--bg-paper-subtle);
+  border-top: 1px solid var(--border-paper);
+  padding: 0.6rem 0.5rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-nav-items {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.mobile-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--ink-secondary);
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease;
+}
+
+.mobile-nav-btn.active {
+  color: var(--accent-terracotta);
+  font-weight: 600;
+}
+
+.mobile-top-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background-color: var(--bg-paper-subtle);
+  border-bottom: 1px solid var(--border-paper);
+}
+
+@media (max-width: 960px) {
+  .app-wrapper {
+    padding: 0;
+  }
+
+  .notebook-container {
+    border-radius: 0;
+    border: none;
+    min-height: 100vh;
+  }
+
+  .notebook-spine {
+    display: none;
+  }
+
+  .notebook-sidebar {
+    display: none;
+  }
+
+  .mobile-top-bar {
+    display: flex;
+  }
+
+  .mobile-nav-bar {
+    display: flex;
+  }
+
+  .page-sheet {
+    padding: 1.5rem 1.25rem 5.5rem 1.25rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .notebook-main {
+    max-height: calc(100vh - 60px);
+  }
+}
