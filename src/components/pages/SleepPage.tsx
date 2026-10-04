@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { SleepLog } from '../../types';
 import { Plus, Edit2, Trash2, Moon, Sparkles, TrendingUp, Calendar, AlertCircle } from 'lucide-react';
-import { deleteSleepLog, calculateSleepStats } from '../../services/storage';
+import { calculateSleepStats } from '../../services/storage';
+import { deleteSleepLog } from '../../services/sleep';
 
 interface SleepPageProps {
   sleepLogs: SleepLog[];
   onOpenNewSleep: () => void;
   onEditSleep: (log: SleepLog) => void;
-  onDataRefresh: () => void;
+  onDataRefresh: () => void | Promise<void>;
 }
 
 type PeriodFilter = 7 | 14 | 30;
@@ -21,10 +22,14 @@ export const SleepPage: React.FC<SleepPageProps> = ({
   const [period, setPeriod] = useState<PeriodFilter>(14);
   const [hoveredLog, setHoveredLog] = useState<{ log: SleepLog; x: number; y: number } | null>(null);
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Deseja excluir este registro de sono do caderno?')) {
-      deleteSleepLog(id);
-      onDataRefresh();
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Deseja excluir este registro de sono do caderno?')) return;
+    try {
+      await deleteSleepLog(id);
+      await onDataRefresh();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Erro ao excluir registro de sono.');
     }
   };
 

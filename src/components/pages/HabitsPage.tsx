@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { Habit } from '../../types';
+import { Habit, HabitRecord } from '../../types';
 import { Plus, Edit2, Trash2, ChevronLeft, ChevronRight, CheckCircle, Flame } from 'lucide-react';
-import { deleteHabit, toggleHabitDay, getHabitRecords, calculateStreak } from '../../services/storage';
+import { deleteHabit, calculateStreak } from '../../services/habits';
 
 interface HabitsPageProps {
   habits: Habit[];
+  habitRecords: HabitRecord[];
+  onToggleHabitDay: (habitId: string, dateStr: string) => Promise<void>;
   onOpenNewHabit: () => void;
   onEditHabit: (habit: Habit) => void;
-  onDataRefresh: () => void;
+  onDataRefresh: () => void | Promise<void>;
 }
 
 export const HabitsPage: React.FC<HabitsPageProps> = ({
   habits,
+  habitRecords,
+  onToggleHabitDay,
   onOpenNewHabit,
   onEditHabit,
   onDataRefresh,
@@ -45,14 +49,17 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
   const weekLabel = `${weekDays[0].dayNumber}/${weekDays[0].dateStr.split('-')[1]} a ${weekDays[6].dayNumber}/${weekDays[6].dateStr.split('-')[1]}`;
 
   const handleToggle = (habitId: string, dateStr: string) => {
-    toggleHabitDay(habitId, dateStr);
-    onDataRefresh();
+    void onToggleHabitDay(habitId, dateStr);
   };
 
-  const handleDelete = (habitId: string) => {
-    if (window.confirm('Deseja excluir este hábito e todo o seu histórico do caderno?')) {
-      deleteHabit(habitId);
-      onDataRefresh();
+  const handleDelete = async (habitId: string) => {
+    if (!window.confirm('Deseja excluir este hábito e todo o seu histórico do caderno?')) return;
+    try {
+      await deleteHabit(habitId);
+      await onDataRefresh();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Erro ao excluir hábito.');
     }
   };
 
@@ -150,8 +157,8 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {habits.map((habit) => {
-            const records = getHabitRecords(habit.id);
-            const streak = calculateStreak(habit.id);
+            const records = habitRecords.filter((r) => r.habit_id === habit.id);
+            const streak = calculateStreak(records);
             const recordsMap = new Set(records.filter((r) => r.completed).map((r) => r.date));
             const evalResult = evaluateHabitWeek(habit, recordsMap);
 

@@ -1,18 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Goal, Habit, Note, SleepLog, Task, User } from './types';
-import {
-  getCurrentUser,
-  getTasks,
-  getHabits,
-  getNotes,
-  getGoals,
-  getSleepLogs,
-  saveTask,
-  saveHabit,
-  saveNote,
-  saveGoal,
-  saveSleepLog,
-} from './services/storage';
+import { Goal, Habit, HabitRecord, Note, SleepLog, Task, User } from './types';
+import { fetchTasks, saveTask, TaskInput } from './services/tasks';
+import { fetchHabits, fetchHabitRecords, saveHabit, toggleHabitDay, HabitInput } from './services/habits';
+import { fetchGoals, saveGoal, GoalInput } from './services/goals';
+import { fetchSleepLogs, saveSleepLog, SleepLogInput } from './services/sleep';
+import { fetchNotes, saveNote, NoteInput } from './services/notes';
+import { useAuth } from './contexts/AuthContext';
 
 import { NotebookLayout } from './components/layout/NotebookLayout';
 import { HomePage } from './components/pages/HomePage';
@@ -27,18 +20,39 @@ import { HabitModal } from './components/modals/HabitModal';
 import { SleepModal } from './components/modals/SleepModal';
 import { NoteModal } from './components/modals/NoteModal';
 import { GoalModal } from './components/modals/GoalModal';
-import { SupabaseModal } from './components/modals/SupabaseModal';
 import { AuthModal } from './components/modals/AuthModal';
 
+// Auth guard: o painel só é montado com uma sessão ativa no Supabase
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<User>(() => getCurrentUser());
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-muted)', fontStyle: 'italic' }}>
+        Abrindo o caderno...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthModal isOpen onClose={() => {}} dismissible={false} />;
+  }
+
+  // key: troca de conta remonta o painel e descarta o estado do usuário anterior
+  return <Dashboard key={user.id} currentUser={user} />;
+}
+
+function Dashboard({ currentUser }: { currentUser: User }) {
   const [currentPage, setCurrentPage] = useState<string>('home');
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [habitRecords, setHabitRecords] = useState<HabitRecord[]>([]);
   const [sleepLogs, setSleepLogs] = useState<SleepLog[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   // Modais
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -56,22 +70,55 @@ export default function App() {
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
 
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Recarregar dados do usuário atual
-  const refreshData = useCallback(() => {
-    if (!currentUser) return;
-    setTasks(getTasks(currentUser.id));
-    setHabits(getHabits(currentUser.id));
-    setSleepLogs(getSleepLogs(currentUser.id));
-    setNotes(getNotes(currentUser.id));
-    setGoals(getGoals(currentUser.id));
-  }, [currentUser]);
+  // Executa um carregamento do Supabase e expõe a falha no aviso do topo da página
+  const runLoader = useCallback(async (loader: () => Promise<void>) => {
+    try {
+      await loader();
+    } catch (err) {
+      console.error(err);
+      setDataError(err instanceof Error ? err.message : 'Erro ao carregar dados do Supabase.');
+    }
+  }, []);
+
+  const loadTasks = useCallback(() => runLoader(async () => setTasks(await fetchTasks())), [runLoader]);
+  const loadGoals = useCallback(() => runLoader(async () => setGoals(await fetchGoals())), [runLoader]);
+  const loadSleepLogs = useCallback(() => runLoader(async () => setSleepLogs(await fetchSleepLogs())), [runLoader]);
+  const loadNotes = useCallback(() => runLoader(async () => setNotes(await fetchNotes())), [runLoader]);
+  const loadHabits = useCallback(
+    () =>
+      runLoader(async () => {
+        const list = await fetchHabits();
+        const records = await fetchHabitRecords(list.map((h) => h.id));
+        setHabits(list);
+        setHabitRecords(records);
+      }),
+    [runLoader]
+  );
+
+  // Recarregar todos os dados do usuário atual
+  const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    setDataError(null);
+    await Promise.all([loadTasks(), loadHabits(), loadSleepLogs(), loadNotes(), loadGoals()]);
+    setIsLoading(false);
+  }, [loadTasks, loadHabits, loadSleepLogs, loadNotes, loadGoals]);
 
   useEffect(() => {
-    refreshData();
+    void refreshData();
   }, [refreshData]);
+
+  // Marca/desmarca um hábito no dia e atualiza só o registro afetado
+  const handleToggleHabitDay = async (habitId: string, dateStr: string) => {
+    try {
+      const record = await toggleHabitDay(habitId, dateStr);
+      setHabitRecords((prev) => [...prev.filter((r) => r.id !== record.id), record]);
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Erro ao registrar hábito.');
+    }
+  };
 
   // Handlers para abrir modais de criação/edição
   const handleOpenNewTask = () => {
@@ -124,35 +171,33 @@ export default function App() {
     setIsGoalModalOpen(true);
   };
 
-  // Handlers de salvamento
-  const handleSaveTask = (taskData: Omit<Task, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
-    saveTask(taskData);
-    refreshData();
+  // Handlers de salvamento: os modais aguardam a promessa e mostram o erro, se houver
+  const handleSaveTask = async (taskData: TaskInput) => {
+    await saveTask(taskData);
+    await loadTasks();
   };
 
-  const handleSaveHabit = (habitData: Omit<Habit, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
-    saveHabit(habitData);
-    refreshData();
+  const handleSaveHabit = async (habitData: HabitInput) => {
+    await saveHabit(habitData);
+    await loadHabits();
   };
 
-  const handleSaveSleep = (sleepData: Omit<SleepLog, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
-    saveSleepLog(sleepData);
-    refreshData();
+  // Recarrega a lista: um novo registro pode ter sobrescrito outro da mesma data
+  const handleSaveSleep = async (sleepData: SleepLogInput) => {
+    await saveSleepLog(sleepData);
+    await loadSleepLogs();
   };
 
-  const handleSaveNote = (noteData: Omit<Note, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
-    saveNote(noteData);
-    refreshData();
+  const handleSaveNote = async (noteData: NoteInput) => {
+    const saved = await saveNote(noteData);
+    setNotes((prev) =>
+      noteData.id ? prev.map((n) => (n.id === saved.id ? saved : n)) : [saved, ...prev]
+    );
   };
 
-  const handleSaveGoal = (goalData: Omit<Goal, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
-    saveGoal(goalData);
-    refreshData();
-  };
-
-  const handleUserChange = (user: User) => {
-    setCurrentUser(user);
-    refreshData();
+  const handleSaveGoal = async (goalData: GoalInput) => {
+    await saveGoal(goalData);
+    await loadGoals();
   };
 
   const pendingTaskCount = tasks.filter((t) => t.status !== 'completed').length;
@@ -168,9 +213,17 @@ export default function App() {
         sleepCount={sleepLogs.length}
         noteCount={notes.length}
         goalCount={goals.length}
-        onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenAuth={() => setIsAuthModalOpen(true)}
       >
+        {dataError && (
+          <div role="alert" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', margin: '0 0 1rem', border: '1px solid var(--accent-terracotta)', borderRadius: 'var(--radius-sm)', color: 'var(--accent-terracotta)', fontSize: '0.85rem' }}>
+            <span>{dataError}</span>
+            <button type="button" className="btn-ghost" onClick={() => void refreshData()}>
+              Tentar novamente
+            </button>
+          </div>
+        )}
+
         {currentPage === 'home' && (
           <HomePage
             tasks={tasks}
@@ -178,12 +231,14 @@ export default function App() {
             sleepLogs={sleepLogs}
             notes={notes}
             goals={goals}
+            habitRecords={habitRecords}
+            onToggleHabitDay={handleToggleHabitDay}
             onNavigate={setCurrentPage}
             onOpenNewTask={handleOpenNewTask}
             onOpenNewHabit={handleOpenNewHabit}
             onOpenNewSleep={handleOpenNewSleep}
             onOpenNewNote={handleOpenNewNote}
-            onDataRefresh={refreshData}
+            onDataRefresh={loadTasks}
           />
         )}
 
@@ -192,16 +247,18 @@ export default function App() {
             tasks={tasks}
             onOpenNewTask={handleOpenNewTask}
             onEditTask={handleEditTask}
-            onDataRefresh={refreshData}
+            onDataRefresh={loadTasks}
           />
         )}
 
         {currentPage === 'habits' && (
           <HabitsPage
             habits={habits}
+            habitRecords={habitRecords}
+            onToggleHabitDay={handleToggleHabitDay}
             onOpenNewHabit={handleOpenNewHabit}
             onEditHabit={handleEditHabit}
-            onDataRefresh={refreshData}
+            onDataRefresh={loadHabits}
           />
         )}
 
@@ -210,16 +267,17 @@ export default function App() {
             sleepLogs={sleepLogs}
             onOpenNewSleep={handleOpenNewSleep}
             onEditSleep={handleEditSleep}
-            onDataRefresh={refreshData}
+            onDataRefresh={loadSleepLogs}
           />
         )}
 
         {currentPage === 'notes' && (
           <NotesPage
             notes={notes}
+            isLoading={isLoading}
             onOpenNewNote={handleOpenNewNote}
             onEditNote={handleEditNote}
-            onDataRefresh={refreshData}
+            onDataRefresh={loadNotes}
           />
         )}
 
@@ -228,7 +286,7 @@ export default function App() {
             goals={goals}
             onOpenNewGoal={handleOpenNewGoal}
             onEditGoal={handleEditGoal}
-            onDataRefresh={refreshData}
+            onDataRefresh={loadGoals}
           />
         )}
       </NotebookLayout>
@@ -274,17 +332,9 @@ export default function App() {
         userId={currentUser.id}
       />
 
-      <SupabaseModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-        onDataRefresh={refreshData}
-      />
-
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onLoginSuccess={handleUserChange}
-        currentUser={currentUser}
       />
     </>
   );

@@ -5,7 +5,7 @@ import { X, Pin } from 'lucide-react';
 interface NoteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (noteData: Omit<Note, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => void;
+  onSave: (noteData: Omit<Note, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => void | Promise<void>;
   noteToEdit?: Note | null;
   userId: string;
 }
@@ -33,21 +33,32 @@ export const NoteModal: React.FC<NoteModalProps> = ({
   const [color, setColor] = useState<NoteColor>(noteToEdit?.color || 'sand');
   const [type, setType] = useState<NoteType>(noteToEdit?.type || 'paper');
   const [isPinned, setIsPinned] = useState(noteToEdit?.is_pinned || false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() && !content.trim()) return;
 
-    onSave({
-      id: noteToEdit?.id,
-      user_id: userId,
-      title: title.trim() || 'Sem título',
-      content: content.trim(),
-      color,
-      type,
-      is_pinned: isPinned,
-    });
-    onClose();
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      await onSave({
+        id: noteToEdit?.id,
+        user_id: userId,
+        title: title.trim() || 'Sem título',
+        content: content.trim(),
+        color,
+        type,
+        is_pinned: isPinned,
+      });
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setSaveError(err instanceof Error ? err.message : 'Erro ao guardar anotação.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -138,12 +149,18 @@ export const NoteModal: React.FC<NoteModalProps> = ({
             </div>
           </div>
 
+          {saveError && (
+            <p role="alert" style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', padding: '0 1.5rem 0.75rem' }}>
+              {saveError}
+            </p>
+          )}
+
           <div className="modal-sheet-footer">
             <button type="button" className="btn-ink-secondary" onClick={onClose}>
               Cancelar
             </button>
-            <button type="submit" className="btn-ink-primary">
-              {noteToEdit ? 'Atualizar Nota' : 'Guardar Nota'}
+            <button type="submit" className="btn-ink-primary" disabled={isSaving}>
+              {isSaving ? 'Guardando...' : noteToEdit ? 'Atualizar Nota' : 'Guardar Nota'}
             </button>
           </div>
         </form>

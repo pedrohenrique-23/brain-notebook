@@ -6,7 +6,7 @@ import { getTodayDateString } from '../../services/storage';
 interface SleepModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (sleepData: Omit<SleepLog, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => void;
+  onSave: (sleepData: Omit<SleepLog, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => void | Promise<void>;
   sleepToEdit?: SleepLog | null;
   userId: string;
 }
@@ -35,6 +35,8 @@ export const SleepModal: React.FC<SleepModalProps> = ({
   const [wakeTime, setWakeTime] = useState(sleepToEdit?.wake_time || '07:00');
   const [quality, setQuality] = useState<SleepQuality>(sleepToEdit?.quality || 'bom');
   const [notes, setNotes] = useState(sleepToEdit?.notes || '');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Atualizar cálculo automático de horas se bedtime e wakeTime mudarem
   const calculateHoursFromTimes = (bed: string, wake: string) => {
@@ -72,21 +74,30 @@ export const SleepModal: React.FC<SleepModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!date) return;
 
-    onSave({
-      id: sleepToEdit?.id,
-      user_id: userId,
-      date,
-      hours: Number(hours) || 0,
-      bedtime: bedtime || undefined,
-      wake_time: wakeTime || undefined,
-      quality,
-      notes: notes.trim() || undefined,
-    });
-    onClose();
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      await onSave({
+        id: sleepToEdit?.id,
+        user_id: userId,
+        date,
+        hours: Number(hours) || 0,
+        bedtime: bedtime || undefined,
+        wake_time: wakeTime || undefined,
+        quality,
+        notes: notes.trim() || undefined,
+      });
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setSaveError(err instanceof Error ? err.message : 'Erro ao guardar registro de sono.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const hoursInt = Math.floor(hours);
@@ -244,12 +255,18 @@ export const SleepModal: React.FC<SleepModalProps> = ({
             </div>
           </div>
 
+          {saveError && (
+            <p role="alert" style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', padding: '0 1.5rem 0.75rem' }}>
+              {saveError}
+            </p>
+          )}
+
           <div className="modal-sheet-footer">
             <button type="button" className="btn-ink-secondary" onClick={onClose}>
               Cancelar
             </button>
-            <button type="submit" className="btn-ink-primary">
-              {sleepToEdit ? 'Atualizar Noite' : 'Registrar Sono'}
+            <button type="submit" className="btn-ink-primary" disabled={isSaving}>
+              {isSaving ? 'Guardando...' : sleepToEdit ? 'Atualizar Noite' : 'Registrar Sono'}
             </button>
           </div>
         </form>

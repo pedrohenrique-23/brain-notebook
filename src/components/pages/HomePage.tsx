@@ -1,20 +1,24 @@
 import React from 'react';
-import { Goal, Habit, Note, SleepLog, Task } from '../../types';
+import { Goal, Habit, HabitRecord, Note, SleepLog, Task } from '../../types';
 import { Plus, ArrowRight, Moon } from 'lucide-react';
-import { cycleTaskStatus, toggleHabitDay, getHabitRecords, calculateStreak, calculateSleepStats } from '../../services/storage';
+import { calculateSleepStats } from '../../services/storage';
+import { cycleTaskStatus } from '../../services/tasks';
+import { calculateStreak } from '../../services/habits';
 
 interface HomePageProps {
   tasks: Task[];
   habits: Habit[];
   notes: Note[];
   goals: Goal[];
+  habitRecords: HabitRecord[];
+  onToggleHabitDay: (habitId: string, dateStr: string) => Promise<void>;
   sleepLogs?: SleepLog[];
   onNavigate: (page: string) => void;
   onOpenNewTask: () => void;
   onOpenNewHabit: () => void;
   onOpenNewNote: () => void;
   onOpenNewSleep?: () => void;
-  onDataRefresh: () => void;
+  onDataRefresh: () => void | Promise<void>;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
@@ -22,6 +26,8 @@ export const HomePage: React.FC<HomePageProps> = ({
   habits,
   notes,
   goals,
+  habitRecords,
+  onToggleHabitDay,
   sleepLogs = [],
   onNavigate,
   onOpenNewTask,
@@ -52,14 +58,18 @@ export const HomePage: React.FC<HomePageProps> = ({
     };
   });
 
-  const handleToggleTaskStatus = (taskId: string) => {
-    cycleTaskStatus(taskId);
-    onDataRefresh();
+  const handleToggleTaskStatus = async (task: Task) => {
+    try {
+      await cycleTaskStatus(task);
+      await onDataRefresh();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Erro ao atualizar tarefa.');
+    }
   };
 
   const handleToggleHabit = (habitId: string, dateStr: string) => {
-    toggleHabitDay(habitId, dateStr);
-    onDataRefresh();
+    void onToggleHabitDay(habitId, dateStr);
   };
 
   // Filtrar tarefas pendentes e de hoje
@@ -107,7 +117,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <button
                       type="button"
                       className={`bujo-bullet-btn ${t.status}`}
-                      onClick={() => handleToggleTaskStatus(t.id)}
+                      onClick={() => handleToggleTaskStatus(t)}
                       title={`Status: ${t.status === 'completed' ? 'Concluída' : t.status === 'in_progress' ? 'Em andamento' : 'Pendente'}. Clique para avançar.`}
                     >
                       {t.status === 'completed' && '●'}
@@ -157,8 +167,8 @@ export const HomePage: React.FC<HomePageProps> = ({
             ) : (
               <div className="habit-list">
                 {habits.map((h) => {
-                  const records = getHabitRecords(h.id);
-                  const streak = calculateStreak(h.id);
+                  const records = habitRecords.filter((r) => r.habit_id === h.id);
+                  const streak = calculateStreak(records);
                   const recordsMap = new Set(records.filter((r) => r.completed).map((r) => r.date));
                   const weekDoneCount = weekDays.filter((wd) => recordsMap.has(wd.dateStr)).length;
 

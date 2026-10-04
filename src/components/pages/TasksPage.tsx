@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Task, TaskCategory, TaskStatus } from '../../types';
 import { Plus, Edit2, Trash2, CheckCircle2, Clock, Circle } from 'lucide-react';
-import { cycleTaskStatus, deleteTask, getTodayDateString } from '../../services/storage';
+import { getTodayDateString } from '../../services/storage';
+import { cycleTaskStatus, deleteTask } from '../../services/tasks';
 
 interface TasksPageProps {
   tasks: Task[];
   onOpenNewTask: () => void;
   onEditTask: (task: Task) => void;
-  onDataRefresh: () => void;
+  onDataRefresh: () => void | Promise<void>;
 }
 
 type DateFilter = 'all' | 'today' | 'tomorrow' | 'week' | 'overdue' | 'completed';
@@ -23,15 +24,24 @@ export const TasksPage: React.FC<TasksPageProps> = ({
 
   const todayStr = getTodayDateString();
 
-  const handleStatusToggle = (taskId: string) => {
-    cycleTaskStatus(taskId);
-    onDataRefresh();
+  const handleStatusToggle = async (task: Task) => {
+    try {
+      await cycleTaskStatus(task);
+      await onDataRefresh();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Erro ao atualizar tarefa.');
+    }
   };
 
-  const handleDelete = (taskId: string) => {
-    if (window.confirm('Deseja excluir esta tarefa do caderno?')) {
-      deleteTask(taskId);
-      onDataRefresh();
+  const handleDelete = async (taskId: string) => {
+    if (!window.confirm('Deseja excluir esta tarefa do caderno?')) return;
+    try {
+      await deleteTask(taskId);
+      await onDataRefresh();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Erro ao excluir tarefa.');
     }
   };
 
@@ -189,7 +199,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({
               <button
                 type="button"
                 className={`bujo-bullet-btn ${t.status}`}
-                onClick={() => handleStatusToggle(t.id)}
+                onClick={() => handleStatusToggle(t)}
                 title="Clique para alternar status (Pendente -> Em andamento -> Concluída)"
               >
                 {t.status === 'completed' && '●'}

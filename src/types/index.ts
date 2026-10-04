@@ -98,9 +98,3 @@ export interface SleepLog {
   created_at: string;
   updated_at: string;
 }
-
-export interface SupabaseConfig {
-  url: string;
-  anonKey: string;
-  isConnected: boolean;
-}

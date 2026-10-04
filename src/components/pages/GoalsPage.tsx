@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Goal, GoalCategory, GoalTimeframe } from '../../types';
 import { Plus, Edit2, Trash2, LayoutGrid, List } from 'lucide-react';
-import { deleteGoal } from '../../services/storage';
+import { deleteGoal } from '../../services/goals';
 
 interface GoalsPageProps {
   goals: Goal[];
   onOpenNewGoal: () => void;
   onEditGoal: (goal: Goal) => void;
-  onDataRefresh: () => void;
+  onDataRefresh: () => void | Promise<void>;
 }
 
 export const GoalsPage: React.FC<GoalsPageProps> = ({
@@ -20,10 +20,14 @@ export const GoalsPage: React.FC<GoalsPageProps> = ({
   const [timeframeFilter, setTimeframeFilter] = useState<'all' | GoalTimeframe>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
-  const handleDelete = (goalId: string) => {
-    if (window.confirm('Deseja retirar este objetivo do seu caderno?')) {
-      deleteGoal(goalId);
-      onDataRefresh();
+  const handleDelete = async (goalId: string) => {
+    if (!window.confirm('Deseja retirar este objetivo do seu caderno?')) return;
+    try {
+      await deleteGoal(goalId);
+      await onDataRefresh();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Erro ao excluir meta.');
     }
   };
 

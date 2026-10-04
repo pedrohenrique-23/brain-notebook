@@ -10,7 +10,7 @@ import gardenHouseImg from '../../assets/images/vision_garden_house_179098347851
 interface GoalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (goalData: Omit<Goal, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => void;
+  onSave: (goalData: Omit<Goal, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => void | Promise<void>;
   goalToEdit?: Goal | null;
   userId: string;
 }
@@ -41,27 +41,38 @@ export const GoalModal: React.FC<GoalModalProps> = ({
   const [deadline, setDeadline] = useState(goalToEdit?.deadline || '');
   const [status, setStatus] = useState<GoalStatus>(goalToEdit?.status || 'active');
   const [imageUrl, setImageUrl] = useState(goalToEdit?.image_url || dreamCarImg);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    onSave({
-      id: goalToEdit?.id,
-      user_id: userId,
-      title: title.trim(),
-      description: description.trim(),
-      type: category.toLowerCase(),
-      category,
-      timeframe,
-      target_value: targetValue ? Number(targetValue) : undefined,
-      current_value: currentValue ? Number(currentValue) : 0,
-      unit,
-      deadline: deadline || undefined,
-      status,
-      image_url: imageUrl,
-    });
-    onClose();
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      await onSave({
+        id: goalToEdit?.id,
+        user_id: userId,
+        title: title.trim(),
+        description: description.trim(),
+        type: category.toLowerCase(),
+        category,
+        timeframe,
+        target_value: targetValue ? Number(targetValue) : undefined,
+        current_value: currentValue ? Number(currentValue) : 0,
+        unit,
+        deadline: deadline || undefined,
+        status,
+        image_url: imageUrl,
+      });
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setSaveError(err instanceof Error ? err.message : 'Erro ao guardar meta.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -213,12 +224,18 @@ export const GoalModal: React.FC<GoalModalProps> = ({
             </div>
           </div>
 
+          {saveError && (
+            <p role="alert" style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', padding: '0 1.5rem 0.75rem' }}>
+              {saveError}
+            </p>
+          )}
+
           <div className="modal-sheet-footer">
             <button type="button" className="btn-ink-secondary" onClick={onClose}>
               Cancelar
             </button>
-            <button type="submit" className="btn-ink-primary">
-              {goalToEdit ? 'Atualizar Meta' : 'Fixar Meta no Caderno'}
+            <button type="submit" className="btn-ink-primary" disabled={isSaving}>
+              {isSaving ? 'Guardando...' : goalToEdit ? 'Atualizar Meta' : 'Fixar Meta no Caderno'}
             </button>
           </div>
         </form>

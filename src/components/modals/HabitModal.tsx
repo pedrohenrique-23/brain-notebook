@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 interface HabitModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (habitData: Omit<Habit, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => void;
+  onSave: (habitData: Omit<Habit, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => void | Promise<void>;
   habitToEdit?: Habit | null;
   userId: string;
 }
@@ -26,6 +26,8 @@ export const HabitModal: React.FC<HabitModalProps> = ({
   const [unit, setUnit] = useState<string>(habitToEdit?.unit || 'dias consecutivos');
   const [frequency, setFrequency] = useState(habitToEdit?.frequency || 'Meta semanal');
   const [startDate, setStartDate] = useState(habitToEdit?.start_date || new Date().toISOString().split('T')[0]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Ajustar unidade sugerida com base no tipo de meta
   const handleTypeChange = (type: HabitTargetType) => {
@@ -45,22 +47,31 @@ export const HabitModal: React.FC<HabitModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    onSave({
-      id: habitToEdit?.id,
-      user_id: userId,
-      name: name.trim(),
-      description: description.trim(),
-      frequency,
-      target: Number(target) || 1,
-      target_type: targetType,
-      unit,
-      start_date: startDate,
-    });
-    onClose();
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      await onSave({
+        id: habitToEdit?.id,
+        user_id: userId,
+        name: name.trim(),
+        description: description.trim(),
+        frequency,
+        target: Number(target) || 1,
+        target_type: targetType,
+        unit,
+        start_date: startDate,
+      });
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setSaveError(err instanceof Error ? err.message : 'Erro ao guardar hábito.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -164,12 +175,18 @@ export const HabitModal: React.FC<HabitModalProps> = ({
             </div>
           </div>
 
+          {saveError && (
+            <p role="alert" style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', padding: '0 1.5rem 0.75rem' }}>
+              {saveError}
+            </p>
+          )}
+
           <div className="modal-sheet-footer">
             <button type="button" className="btn-ink-secondary" onClick={onClose}>
               Cancelar
             </button>
-            <button type="submit" className="btn-ink-primary">
-              {habitToEdit ? 'Salvar Hábito' : 'Criar Hábito'}
+            <button type="submit" className="btn-ink-primary" disabled={isSaving}>
+              {isSaving ? 'Guardando...' : habitToEdit ? 'Salvar Hábito' : 'Criar Hábito'}
             </button>
           </div>
         </form>

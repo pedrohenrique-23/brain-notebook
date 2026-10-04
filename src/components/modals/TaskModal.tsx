@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (taskData: Omit<Task, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => void;
+  onSave: (taskData: Omit<Task, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => void | Promise<void>;
   taskToEdit?: Task | null;
   userId: string;
 }
@@ -26,23 +26,34 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [dueDate, setDueDate] = useState(taskToEdit?.due_date || new Date().toISOString().split('T')[0]);
   const [category, setCategory] = useState<TaskCategory>(taskToEdit?.category || 'Pessoal');
   const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly'>(taskToEdit?.recurrence || 'none');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    onSave({
-      id: taskToEdit?.id,
-      user_id: userId,
-      title: title.trim(),
-      description: description.trim(),
-      status,
-      priority,
-      due_date: dueDate || undefined,
-      category,
-      recurrence,
-    });
-    onClose();
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      await onSave({
+        id: taskToEdit?.id,
+        user_id: userId,
+        title: title.trim(),
+        description: description.trim(),
+        status,
+        priority,
+        due_date: dueDate || undefined,
+        category,
+        recurrence,
+      });
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setSaveError(err instanceof Error ? err.message : 'Erro ao guardar tarefa.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -154,12 +165,18 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
+          {saveError && (
+            <p role="alert" style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', padding: '0 1.5rem 0.75rem' }}>
+              {saveError}
+            </p>
+          )}
+
           <div className="modal-sheet-footer">
             <button type="button" className="btn-ink-secondary" onClick={onClose}>
               Cancelar
             </button>
-            <button type="submit" className="btn-ink-primary">
-              {taskToEdit ? 'Atualizar Tarefa' : 'Registrar Tarefa'}
+            <button type="submit" className="btn-ink-primary" disabled={isSaving}>
+              {isSaving ? 'Guardando...' : taskToEdit ? 'Atualizar Tarefa' : 'Registrar Tarefa'}
             </button>
           </div>
         </form>

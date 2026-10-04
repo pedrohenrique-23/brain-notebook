@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { Note, NoteType } from '../../types';
 import { Plus, Search, Pin, Edit2, Trash2 } from 'lucide-react';
-import { deleteNote, togglePinNote } from '../../services/storage';
+import { deleteNote, setNotePinned } from '../../services/notes';
 
 interface NotesPageProps {
   notes: Note[];
+  isLoading?: boolean;
+  error?: string | null;
   onOpenNewNote: () => void;
   onEditNote: (note: Note) => void;
-  onDataRefresh: () => void;
+  onDataRefresh: () => void | Promise<void>;
 }
 
 export const NotesPage: React.FC<NotesPageProps> = ({
   notes,
+  isLoading = false,
+  error = null,
   onOpenNewNote,
   onEditNote,
   onDataRefresh,
@@ -19,15 +23,24 @@ export const NotesPage: React.FC<NotesPageProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | NoteType>('all');
 
-  const handleTogglePin = (noteId: string) => {
-    togglePinNote(noteId);
-    onDataRefresh();
+  const handleTogglePin = async (note: Note) => {
+    try {
+      await setNotePinned(note.id, !note.is_pinned);
+      await onDataRefresh();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Erro ao fixar anotação.');
+    }
   };
 
-  const handleDelete = (noteId: string) => {
-    if (window.confirm('Deseja descartar esta anotação do caderno?')) {
-      deleteNote(noteId);
-      onDataRefresh();
+  const handleDelete = async (noteId: string) => {
+    if (!window.confirm('Deseja descartar esta anotação do caderno?')) return;
+    try {
+      await deleteNote(noteId);
+      await onDataRefresh();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Erro ao excluir anotação.');
     }
   };
 
@@ -99,8 +112,18 @@ export const NotesPage: React.FC<NotesPageProps> = ({
         </div>
       </div>
 
+      {error && (
+        <p role="alert" style={{ color: 'var(--accent-terracotta)', fontSize: '0.85rem', padding: '0.75rem 0' }}>
+          {error}
+        </p>
+      )}
+
       {/* GRID DE NOTAS */}
-      {sortedNotes.length === 0 ? (
+      {isLoading && notes.length === 0 ? (
+        <p style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--ink-muted)', fontStyle: 'italic' }}>
+          Carregando anotações...
+        </p>
+      ) : sortedNotes.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--ink-muted)' }}>
           <p style={{ fontFamily: 'var(--font-script)', fontSize: '1.8rem', marginBottom: '0.5rem', color: 'var(--ink-secondary)' }}>
             Nenhuma folha encontrada
@@ -122,7 +145,7 @@ export const NotesPage: React.FC<NotesPageProps> = ({
                   <button
                     type="button"
                     className="btn-ghost"
-                    onClick={() => handleTogglePin(note.id)}
+                    onClick={() => handleTogglePin(note)}
                     title={note.is_pinned ? 'Desafixar nota' : 'Fixar nota no topo'}
                     style={{ color: note.is_pinned ? 'var(--accent-terracotta)' : 'var(--ink-muted)', padding: '0.2rem' }}
                   >

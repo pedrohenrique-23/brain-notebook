@@ -1,65 +1,124 @@
 import React, { useState } from 'react';
-import { User } from '../../types';
-import { registerUser, setCurrentUser, DEFAULT_USER } from '../../services/storage';
-import { X, UserPlus, LogIn } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { X, UserPlus, LogIn, LogOut, Eye, EyeOff } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: (user: User) => void;
-  currentUser: User | null;
+  // false quando o modal funciona como tela de login obrigatória (sem fechar)
+  dismissible?: boolean;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({
-  isOpen,
-  onClose,
-  onLoginSuccess,
-  currentUser,
-}) => {
-  if (!isOpen) return null;
-
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, dismissible = true }) => {
+  const { user, signIn, signUp, signOut } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Depois de todos os hooks (regras dos Hooks)
+  if (!isOpen) return null;
+
+  const switchMode = (next: 'login' | 'register') => {
+    setMode(next);
+    setShowPassword(false);
+    setErrorMessage(null);
+    setInfoMessage(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === 'register') {
-      if (!name.trim() || !email.trim()) return;
-      const newUser = registerUser(name, email);
-      onLoginSuccess(newUser);
+    if (!email.trim() || !password) return;
+    if (mode === 'register' && !name.trim()) return;
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+    try {
+      if (mode === 'register') {
+        const { hasSession } = await signUp(name, email, password);
+        if (!hasSession) {
+          // Projeto com confirmação de e-mail ativa: a sessão só existe após o link
+          setInfoMessage('Conta criada! Confirme o cadastro pelo link enviado ao seu e-mail e depois faça login.');
+          setMode('login');
+          setPassword('');
+          setShowPassword(false);
+          return;
+        }
+      } else {
+        await signIn(email, password);
+      }
       onClose();
-    } else {
-      if (!email.trim()) return;
-      // Login simples da V1 simulando sessão do Supabase Auth
-      const user: User = {
-        id: `usr_${email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`,
-        name: email.split('@')[0] || 'Usuário',
-        email: email.trim().toLowerCase(),
-      };
-      setCurrentUser(user);
-      onLoginSuccess(user);
-      onClose();
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Erro inesperado na autenticação.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleQuickDemo = () => {
-    setCurrentUser(DEFAULT_USER);
-    onLoginSuccess(DEFAULT_USER);
-    onClose();
+  const handleSignOut = async () => {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    try {
+      await signOut();
+      onClose();
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Erro ao sair da conta.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  if (user) {
+    return (
+      <div className="modal-backdrop" onClick={onClose}>
+        <div className="modal-sheet" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-sheet-header">
+            <h2 className="modal-sheet-title">Sua Conta</h2>
+            <button type="button" className="btn-ghost" onClick={onClose} aria-label="Fechar">
+              <X size={20} />
+            </button>
+          </div>
+          <div className="modal-sheet-body">
+            <p style={{ fontSize: '0.85rem', color: 'var(--ink-secondary)' }}>
+              Conectado como <strong>{user.name}</strong> ({user.email}).
+            </p>
+            {errorMessage && (
+              <p role="alert" style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem' }}>
+                {errorMessage}
+              </p>
+            )}
+            <button
+              type="button"
+              className="btn-ink-primary"
+              onClick={handleSignOut}
+              disabled={isSubmitting}
+              style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}
+            >
+              <LogOut size={16} /> {isSubmitting ? 'Saindo...' : 'Sair da conta'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={dismissible ? onClose : undefined}>
       <div className="modal-sheet" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-sheet-header">
           <h2 className="modal-sheet-title">
             {mode === 'login' ? 'Entrar no Caderno' : 'Criar Conta'}
           </h2>
-          <button type="button" className="btn-ghost" onClick={onClose} aria-label="Fechar">
-            <X size={20} />
-          </button>
+          {dismissible && (
+            <button type="button" className="btn-ghost" onClick={onClose} aria-label="Fechar">
+              <X size={20} />
+            </button>
+          )}
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -99,25 +158,59 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Senha</label>
-              <input
-                type="password"
-                className="form-input"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <label className="form-label" htmlFor="auth-password">Senha</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="auth-password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="form-input"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  minLength={6}
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  required
+                  style={{ paddingRight: '2.5rem', width: '100%' }}
+                />
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  aria-pressed={showPassword}
+                  style={{
+                    position: 'absolute',
+                    right: '0.5rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
-            <button type="submit" className="btn-ink-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
+            {errorMessage && (
+              <p role="alert" style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem' }}>
+                {errorMessage}
+              </p>
+            )}
+            {infoMessage && (
+              <p role="status" style={{ color: 'var(--ink-secondary)', fontSize: '0.8rem' }}>
+                {infoMessage}
+              </p>
+            )}
+
+            <button type="submit" className="btn-ink-primary" disabled={isSubmitting} style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
               {mode === 'login' ? (
                 <>
-                  <LogIn size={16} /> Entrar
+                  <LogIn size={16} /> {isSubmitting ? 'Entrando...' : 'Entrar'}
                 </>
               ) : (
                 <>
-                  <UserPlus size={16} /> Cadastrar
+                  <UserPlus size={16} /> {isSubmitting ? 'Cadastrando...' : 'Cadastrar'}
                 </>
               )}
             </button>
@@ -128,7 +221,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   Não tem conta?{' '}
                   <button
                     type="button"
-                    onClick={() => setMode('register')}
+                    onClick={() => switchMode('register')}
                     style={{ color: 'var(--accent-terracotta)', fontWeight: 600, textDecoration: 'underline' }}
                   >
                     Criar nova conta
@@ -139,24 +232,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   Já tem conta?{' '}
                   <button
                     type="button"
-                    onClick={() => setMode('login')}
+                    onClick={() => switchMode('login')}
                     style={{ color: 'var(--accent-terracotta)', fontWeight: 600, textDecoration: 'underline' }}
                   >
                     Fazer login
                   </button>
                 </>
               )}
-            </div>
-
-            <div style={{ borderTop: '1px dashed var(--border-paper)', paddingTop: '1rem', marginTop: '0.5rem', textAlign: 'center' }}>
-              <button
-                type="button"
-                className="btn-ghost"
-                onClick={handleQuickDemo}
-                style={{ fontSize: '0.8rem', color: 'var(--ink-secondary)' }}
-              >
-                Alternar para conta de demonstração (Pedro Silva)
-              </button>
             </div>
           </div>
         </form>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { User } from '../../types';
-import { BookOpen, CheckSquare, Calendar, StickyNote, Target, Settings, LogOut, Menu, User as UserIcon, Moon } from 'lucide-react';
+import { BookOpen, CheckSquare, Calendar, StickyNote, Target, LogOut, Menu, User as UserIcon, Moon } from 'lucide-react';
 
 interface NotebookLayoutProps {
   currentPage: string;
@@ -11,7 +11,6 @@ interface NotebookLayoutProps {
   sleepCount?: number;
   noteCount: number;
   goalCount: number;
-  onOpenSettings: () => void;
   onOpenAuth: () => void;
   children: React.ReactNode;
 }
@@ -25,7 +24,6 @@ export const NotebookLayout: React.FC<NotebookLayoutProps> = ({
   sleepCount = 0,
   noteCount,
   goalCount,
-  onOpenSettings,
   onOpenAuth,
   children,
 }) => {
@@ -78,7 +76,7 @@ export const NotebookLayout: React.FC<NotebookLayoutProps> = ({
 
           {/* PERFIL DO USUÁRIO & AÇÕES */}
           <div className="sidebar-footer">
-            <div className="user-badge" onClick={onOpenAuth} style={{ cursor: 'pointer' }} title="Clique para alternar ou criar conta">
+            <div className="user-badge" onClick={onOpenAuth} style={{ cursor: 'pointer' }} title="Minha conta">
               <div className="user-info">
                 <span className="user-name">{currentUser.name}</span>
                 <span className="user-email">{currentUser.email}</span>
@@ -86,14 +84,9 @@ export const NotebookLayout: React.FC<NotebookLayoutProps> = ({
               <UserIcon size={16} style={{ color: 'var(--ink-muted)' }} />
             </div>
 
-            <button type="button" className="footer-btn" onClick={onOpenSettings}>
-              <Settings size={16} />
-              <span>Configurações & Supabase</span>
-            </button>
-
             <button type="button" className="footer-btn" onClick={onOpenAuth}>
               <LogOut size={16} />
-              <span>Alternar Usuário</span>
+              <span>Sair da Conta</span>
             </button>
           </div>
         </aside>
@@ -108,9 +101,6 @@ export const NotebookLayout: React.FC<NotebookLayoutProps> = ({
               </span>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button type="button" className="btn-ghost" onClick={onOpenSettings} title="Configurações">
-                <Settings size={18} />
-              </button>
               <button type="button" className="btn-ghost" onClick={onOpenAuth} title="Conta">
                 <UserIcon size={18} />
               </button>
