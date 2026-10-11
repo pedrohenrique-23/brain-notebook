@@ -46,6 +46,9 @@
   /* Tipografia */
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-script: 'Caveat', cursive, serif;
+  --font-editorial: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --blush-wash: #F6D6C9;
+  --blush-wash-subtle: rgba(246, 214, 201, 0.45);
 
   /* Sombras de Papel */
   --shadow-notebook: 0 12px 35px -8px rgba(50, 42, 30, 0.15), 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -754,10 +757,659 @@ a {
   color: var(--ink-primary);
   font-weight: 600;
 }
-
 /* ==========================================================================
-   ANOTAÇÕES (ESTILO FOLHA E POST-IT)
+   BULLET JOURNAL HABIT TRACKER (LAYOUT AUTÊNTICO / GRADE COMPLETA)
    ========================================================================== */
+
+.bujo-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+@media (max-width: 1180px) {
+  .bujo-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Barra superior da página de Hábitos */
+.bujo-top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.bujo-brand-title {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 1.85rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  line-height: 1;
+  letter-spacing: -0.3px;
+}
+
+.bujo-brand-subtitle {
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+
+.bujo-month-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.85rem;
+  background-color: var(--bg-paper-card);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bujo-month-pill-btn:hover {
+  background-color: #EFE7D8;
+  border-color: var(--border-paper-dark);
+}
+
+.bujo-view-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: var(--bg-paper-card);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem;
+}
+
+.bujo-view-tab-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.bujo-view-tab-btn.active {
+  background-color: var(--bg-paper-white);
+  color: var(--ink-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  font-weight: 600;
+}
+
+/* Sub-barra de navegação e filtros */
+.bujo-sub-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.bujo-month-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.bujo-month-title {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.bujo-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.bujo-filter-btn {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  background-color: var(--bg-paper-card);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.bujo-filter-btn:hover {
+  border-color: var(--border-paper-dark);
+}
+
+.bujo-filter-btn.active {
+  background-color: var(--bg-paper-white);
+  border-color: var(--ink-primary);
+  color: var(--ink-primary);
+  font-weight: 600;
+}
+
+.bujo-sub-metrics {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.bujo-metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.bujo-metric-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.bujo-metric-value {
+  font-family: var(--font-editorial);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.bujo-btn-custom-grid {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  background-color: rgba(246, 214, 201, 0.45);
+  border: 1px solid rgba(230, 185, 170, 0.6);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--accent-terracotta);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bujo-btn-custom-grid:hover {
+  background-color: rgba(246, 214, 201, 0.7);
+}
+
+/* Folha de Caderno do Rastreador de Hábitos */
+.bujo-sheet {
+  background-color: var(--bg-paper-white);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.75rem 1.5rem;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  /* Textura de pontilhado de caderno Bullet Journal */
+  background-image: radial-gradient(rgba(140, 130, 110, 0.12) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.bujo-sheet-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.bujo-watercolor-banner {
+  display: inline-block;
+  position: relative;
+  padding: 0.2rem 3rem;
+  background: linear-gradient(135deg, rgba(246, 214, 201, 0.65) 0%, rgba(248, 226, 217, 0.4) 100%);
+  border-radius: 9999px;
+  mix-blend-mode: multiply;
+}
+
+.bujo-sheet-title {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 3.5rem;
+  font-weight: 500;
+  color: #1A1A1A;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.bujo-sheet-subtitle {
+  font-size: 0.72rem;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-secondary);
+  font-weight: 600;
+  margin-top: 0.65rem;
+}
+
+/* Tabela e Grade de Dias */
+.bujo-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.bujo-grid-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.85rem;
+}
+
+.bujo-grid-table th {
+  padding: 0.5rem 0.2rem;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  border-bottom: 1px dashed var(--border-paper);
+  text-align: center;
+  user-select: none;
+}
+
+.bujo-grid-table th.col-habit {
+  text-align: left;
+  padding-left: 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  width: 180px;
+  min-width: 170px;
+}
+
+.bujo-grid-table th.col-day {
+  font-size: 0.75rem;
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-secondary);
+  font-weight: 500;
+  min-width: 20px;
+  padding: 0.4rem 0.15rem;
+}
+
+.bujo-grid-table th.col-day.is-today {
+  color: var(--accent-terracotta);
+  font-weight: 700;
+  position: relative;
+}
+
+.bujo-grid-table th.col-summary {
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  text-align: right;
+  padding-right: 0.5rem;
+  width: 90px;
+  min-width: 80px;
+}
+
+.bujo-grid-table td {
+  padding: 0.65rem 0.2rem;
+  border-bottom: 1px dashed rgba(226, 218, 200, 0.45);
+  vertical-align: middle;
+}
+
+.bujo-habit-info {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0.5rem;
+}
+
+.bujo-habit-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.bujo-habit-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--ink-primary);
+  line-height: 1.2;
+}
+
+.bujo-habit-cue {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  line-height: 1.2;
+  margin-top: 0.15rem;
+}
+
+.bujo-habit-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+tr:hover .bujo-habit-actions {
+  opacity: 1;
+}
+
+/* Célula do ponto */
+.bujo-dot-cell {
+  text-align: center;
+  padding: 0.4rem 0.1rem;
+}
+
+.bujo-dot-cell.is-today-col {
+  background-color: rgba(246, 214, 201, 0.15);
+}
+
+.bujo-dot-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-paper-dark);
+  background-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  position: relative;
+  vertical-align: middle;
+}
+
+.bujo-dot-btn:hover {
+  transform: scale(1.18);
+  border-color: var(--ink-primary);
+}
+
+.bujo-dot-btn.completed {
+  background-color: #181818;
+  border-color: #181818;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+}
+
+.bujo-dot-btn.today-halo::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 4px;
+  background-color: rgba(246, 214, 201, 0.55);
+  z-index: -1;
+}
+
+.bujo-summary-badge {
+  text-align: right;
+  padding-right: 0.5rem;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.bujo-sheet-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--border-paper);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.bujo-legend {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+}
+
+.bujo-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.bujo-quote {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink-muted);
+}
+
+/* Coluna Lateral de Insights e Notas */
+.bujo-sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bujo-insight-card {
+  background-color: var(--bg-paper-card);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  position: relative;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.bujo-folded-tab {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  background-color: rgba(246, 214, 201, 0.7);
+  border-bottom-left-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-terracotta);
+}
+
+.bujo-sidebar-title {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin-bottom: 1.25rem;
+}
+
+.bujo-insight-block {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed var(--border-paper);
+}
+
+.bujo-insight-block:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.bujo-insight-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.bujo-insight-kicker {
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 700;
+}
+
+.bujo-insight-pct {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.bujo-insight-name {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink-primary);
+  line-height: 1.2;
+}
+
+.bujo-insight-sub {
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+  margin-top: 0.2rem;
+  line-height: 1.35;
+}
+
+.bujo-progress-ring-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.bujo-notes-card {
+  background-color: var(--bg-paper-white);
+  border: 1px solid var(--border-paper);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.bujo-notes-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--border-paper);
+}
+
+.bujo-notes-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.bujo-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.bujo-note-quote {
+  font-size: 0.82rem;
+  color: var(--ink-secondary);
+  line-height: 1.45;
+  font-style: italic;
+  position: relative;
+  padding-left: 0.75rem;
+  border-left: 2px solid rgba(246, 214, 201, 0.9);
+}
+
+.bujo-note-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+  font-size: 0.78rem;
+  color: var(--accent-terracotta);
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px dashed rgba(246, 214, 201, 0.9);
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-sm);
+  width: 100%;
+  justify-content: space-between;
+  transition: all 0.15s ease;
+}
+
+.bujo-note-add-btn:hover {
+  background-color: rgba(246, 214, 201, 0.2);
+}
+
+.bujo-ritual-photo-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  aspect-ratio: 4 / 3;
+}
+
+.bujo-ritual-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.bujo-ritual-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(20,18,16,0.7) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.25rem;
+  color: #FFFFFF;
+}
+
+.bujo-ritual-kicker {
+  font-size: 0.65rem;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.bujo-ritual-text {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.25;
+  color: #FFFFFF;
+}
+
+/* Rodapé */
+.bujo-page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-paper);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 
 .notes-grid {
   display: grid;

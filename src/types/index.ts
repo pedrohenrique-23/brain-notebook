@@ -23,6 +23,7 @@ export interface Habit {
   user_id: string;
   name: string;
   description?: string;
+  category?: string; // e.g., 'Saúde & Corpo', 'Mente & Foco', 'Rotina', 'Espiritual'
   frequency: string; // e.g., '3x por semana'
   target: number; // e.g. 3 (times), 2 (liters), 30 (minutes)
   target_type: HabitTargetType; // frequency, sequence, quantity, duration
@@ -30,6 +31,15 @@ export interface Habit {
   start_date: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface HabitReflectionNote {
+  id: string;
+  user_id: string;
+  month: string; // YYYY-MM
+  week: number;
+  text: string;
+  created_at: string;
 }
 
 export interface HabitRecord {

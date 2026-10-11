@@ -21,6 +21,7 @@ export const HabitModal: React.FC<HabitModalProps> = ({
 
   const [name, setName] = useState(habitToEdit?.name || '');
   const [description, setDescription] = useState(habitToEdit?.description || '');
+  const [category, setCategory] = useState<string>(habitToEdit?.category || 'Saúde & Corpo');
   const [targetType, setTargetType] = useState<HabitTargetType>(habitToEdit?.target_type || 'sequence');
   const [target, setTarget] = useState<number>(habitToEdit?.target || 3);
   const [unit, setUnit] = useState<string>(habitToEdit?.unit || 'dias consecutivos');
@@ -59,6 +60,7 @@ export const HabitModal: React.FC<HabitModalProps> = ({
         user_id: userId,
         name: name.trim(),
         description: description.trim(),
+        category,
         frequency,
         target: Number(target) || 1,
         target_type: targetType,
@@ -93,12 +95,26 @@ export const HabitModal: React.FC<HabitModalProps> = ({
               <input
                 type="text"
                 className="form-input"
-                placeholder="Ex: Ler a Bíblia, Beber 2L de água, Caminhar"
+                placeholder="Ex: 8 h > sleep, read, skin care, water 2.5l"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoFocus
                 required
               />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Categoria do Hábito</label>
+              <select
+                className="form-select"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                <option value="Saúde & Corpo">Saúde & Corpo</option>
+                <option value="Mente & Foco">Mente & Foco</option>
+                <option value="Rotina">Rotina</option>
+                <option value="Espiritual">Espiritual</option>
+              </select>
             </div>
 
             <div className="form-group">
