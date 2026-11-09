@@ -52,7 +52,7 @@ export interface HabitRecord {
 }
 
 export type NoteColor = 'sand' | 'yellow' | 'green' | 'blue' | 'peach' | 'purple';
-export type NoteType = 'paper' | 'postit';
+export type NoteType = 'paper' | 'postit' | 'checklist';
 
 export interface Note {
   id: string;

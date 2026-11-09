@@ -6,18 +6,12 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  Calendar,
   ChevronDown,
-  Sliders,
   Sparkles,
-  Pin,
-  ArrowRight,
 } from 'lucide-react';
 import {
   deleteHabit,
   calculateStreak,
-  fetchHabitReflections,
-  saveHabitReflection,
   saveHabit,
   BUJO_PRESET_HABITS,
 } from '../../services/habits';
@@ -62,10 +56,7 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
   const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth()); // 0 a 11
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
-  const [viewTab, setViewTab] = useState<'hoje' | 'mensal' | 'estatisticas' | 'diario'>('mensal');
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
-  const [isAddingNote, setIsAddingNote] = useState(false);
-  const [newNoteText, setNewNoteText] = useState('');
   const [isSeedingPresets, setIsSeedingPresets] = useState(false);
 
   // Data atual
@@ -110,9 +101,6 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
       setSelectedMonth((prev) => prev + 1);
     }
   };
-
-  const monthYearKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
-  const [reflections, setReflections] = useState(() => fetchHabitReflections(monthYearKey));
 
   // Filtragem por categoria
   const filteredHabits = useMemo(() => {
@@ -224,42 +212,54 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
     }
   };
 
-  // Salvar nota rápida da semana
-  const handleAddReflection = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newNoteText.trim()) return;
-    const currentWeekNum = Math.min(4, Math.ceil(todayDay / 7));
-    const saved = saveHabitReflection(monthYearKey, currentWeekNum, newNoteText);
-    setReflections((prev) => [saved, ...prev]);
-    setNewNoteText('');
-    setIsAddingNote(false);
-  };
-
-  const currentWeekNumber = Math.min(4, Math.ceil(todayDay / 7));
-
   return (
     <div className="page-sheet" style={{ padding: '1.75rem 2rem' }}>
       {/* 1. BARRA SUPERIOR DE CABEÇALHO */}
       <div className="bujo-top-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-          <div>
-            <h1 className="bujo-brand-title">habits & routine</h1>
-            <div className="bujo-brand-subtitle">BULLET JOURNAL</div>
-          </div>
+        <div>
+          <h1 className="bujo-brand-title">habits & routine</h1>
+          <div className="bujo-brand-subtitle">BULLET JOURNAL</div>
+        </div>
 
-          {/* Seletor Rápido de Mês */}
-          <div style={{ position: 'relative' }}>
+        <button className="btn-ink-primary" onClick={onOpenNewHabit}>
+          <Plus size={16} /> Novo Hábito
+        </button>
+      </div>
+
+      {/* 2. SUB-BARRA DE NAVEGAÇÃO, FILTROS E MÉTRICAS (ÚNICO SELECIONADOR DE MÊS) */}
+      <div className="bujo-sub-bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+          {/* Navegador Único de Mês: < Novembro 2025 v > */}
+          <div className="bujo-month-stepper" style={{ position: 'relative' }}>
             <button
               type="button"
-              className="bujo-month-pill-btn"
-              onClick={() => setShowMonthDropdown((prev) => !prev)}
-              aria-label="Selecionar mês"
+              className="btn-ghost"
+              onClick={handlePrevMonth}
+              title="Mês anterior"
+              style={{ padding: '0.25rem' }}
             >
-              <Calendar size={14} style={{ color: 'var(--accent-terracotta)' }} />
-              <span>
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={() => setShowMonthDropdown((prev) => !prev)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.5rem' }}
+              title="Clique para escolher mês e ano"
+            >
+              <span className="bujo-month-title">
                 {MONTH_NAMES[selectedMonth]} {selectedYear}
               </span>
               <ChevronDown size={14} style={{ color: 'var(--ink-muted)' }} />
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={handleNextMonth}
+              title="Próximo mês"
+              style={{ padding: '0.25rem' }}
+            >
+              <ChevronRight size={18} />
             </button>
 
             {showMonthDropdown && (
@@ -308,74 +308,6 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
               </div>
             )}
           </div>
-        </div>
-
-        {/* Abas Centrais & Botão Novo Hábito */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <div className="bujo-view-tabs">
-            <button
-              type="button"
-              className={`bujo-view-tab-btn ${viewTab === 'hoje' ? 'active' : ''}`}
-              onClick={() => setViewTab('hoje')}
-            >
-              Hoje
-            </button>
-            <button
-              type="button"
-              className={`bujo-view-tab-btn ${viewTab === 'mensal' ? 'active' : ''}`}
-              onClick={() => setViewTab('mensal')}
-            >
-              Visão Mensal
-            </button>
-            <button
-              type="button"
-              className={`bujo-view-tab-btn ${viewTab === 'estatisticas' ? 'active' : ''}`}
-              onClick={() => setViewTab('estatisticas')}
-            >
-              Estatísticas
-            </button>
-            <button
-              type="button"
-              className={`bujo-view-tab-btn ${viewTab === 'diario' ? 'active' : ''}`}
-              onClick={() => setViewTab('diario')}
-            >
-              Diário
-            </button>
-          </div>
-
-          <button className="btn-ink-primary" onClick={onOpenNewHabit}>
-            <Plus size={16} /> Novo Hábito
-          </button>
-        </div>
-      </div>
-
-      {/* 2. SUB-BARRA DE NAVEGAÇÃO, FILTROS E MÉTRICAS */}
-      <div className="bujo-sub-bar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-          {/* Navegador de Mês: < Novembro 2025 > */}
-          <div className="bujo-month-stepper">
-            <button
-              type="button"
-              className="btn-ghost"
-              onClick={handlePrevMonth}
-              title="Mês anterior"
-              style={{ padding: '0.25rem' }}
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <span className="bujo-month-title">
-              {MONTH_NAMES[selectedMonth]} {selectedYear}
-            </span>
-            <button
-              type="button"
-              className="btn-ghost"
-              onClick={handleNextMonth}
-              title="Próximo mês"
-              style={{ padding: '0.25rem' }}
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
 
           {/* Filtros por Categoria */}
           <div className="bujo-filter-pills">
@@ -392,7 +324,7 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
           </div>
         </div>
 
-        {/* Métricas do Topo e Botão Personalizar Grade */}
+        {/* Métricas do Topo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
           <div className="bujo-sub-metrics">
             <div className="bujo-metric-item">
@@ -404,17 +336,6 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
               <span className="bujo-metric-value">{monthMetrics.maxStreak} dias</span>
             </div>
           </div>
-
-          <button
-            type="button"
-            className="bujo-btn-custom-grid"
-            onClick={handleLoadBujoPresets}
-            disabled={isSeedingPresets}
-            title="Carregar ou sincronizar modelos clássicos de hábitos do Bullet Journal"
-          >
-            <Sliders size={14} />
-            <span>{isSeedingPresets ? 'Adicionando...' : 'Personalizar Grade'}</span>
-          </button>
         </div>
       </div>
 
@@ -697,79 +618,7 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
             </div>
           </div>
 
-          {/* CARD 2: NOTAS DA SEMANA */}
-          <div className="bujo-notes-card">
-            <div className="bujo-notes-header">
-              <div className="bujo-notes-title-group">
-                <Pin size={15} style={{ color: 'var(--accent-terracotta)' }} />
-                <h4
-                  style={{
-                    fontFamily: 'var(--font-editorial)',
-                    fontStyle: 'italic',
-                    fontSize: '1.25rem',
-                    fontWeight: 600,
-                    color: 'var(--ink-primary)',
-                  }}
-                >
-                  notas da semana
-                </h4>
-              </div>
-              <span style={{ fontSize: '0.72rem', color: 'var(--ink-muted)', textTransform: 'lowercase' }}>
-                semana {currentWeekNumber}
-              </span>
-            </div>
-
-            <div className="bujo-notes-list">
-              {reflections.map((ref) => (
-                <div key={ref.id} className="bujo-note-quote">
-                  {ref.text}
-                </div>
-              ))}
-            </div>
-
-            {/* Formulário / Botão de Adicionar Nota com Nanquim */}
-            {isAddingNote ? (
-              <form onSubmit={handleAddReflection} style={{ marginTop: '0.75rem' }}>
-                <textarea
-                  className="form-textarea"
-                  rows={2}
-                  placeholder="Escreva sua reflexão semanal com nanquim..."
-                  value={newNoteText}
-                  onChange={(e) => setNewNoteText(e.target.value)}
-                  autoFocus
-                  style={{ fontSize: '0.8rem', padding: '0.5rem' }}
-                />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.4rem', marginTop: '0.4rem' }}>
-                  <button
-                    type="button"
-                    className="btn-ghost"
-                    onClick={() => setIsAddingNote(false)}
-                    style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-ink-primary"
-                    style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}
-                  >
-                    Anotar
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <button
-                type="button"
-                className="bujo-note-add-btn"
-                onClick={() => setIsAddingNote(true)}
-              >
-                <span>Adicionar nota rápida com nanquim</span>
-                <ArrowRight size={13} />
-              </button>
-            )}
-          </div>
-
-          {/* CARD 3: RITUAL MATINAL (FOTO INSPIRACIONAL DO BULLET JOURNAL) */}
+          {/* CARD 2: RITUAL MATINAL (FOTO INSPIRACIONAL DO BULLET JOURNAL) */}
           <div className="bujo-ritual-photo-card">
             <img
               src={ritualPhoto}

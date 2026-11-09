@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Task, TaskCategory, TaskStatus } from '../../types';
-import { Plus, Edit2, Trash2, CheckCircle2, Clock, Circle } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckSquare, Check } from 'lucide-react';
 import { getTodayDateString } from '../../services/storage';
-import { cycleTaskStatus, deleteTask } from '../../services/tasks';
+import { cycleTaskStatus, deleteTask, toggleTaskComplete } from '../../services/tasks';
 
 interface TasksPageProps {
   tasks: Task[];
@@ -12,6 +12,7 @@ interface TasksPageProps {
 }
 
 type DateFilter = 'all' | 'today' | 'tomorrow' | 'week' | 'overdue' | 'completed';
+type TaskViewMode = 'checklist' | 'bujo';
 
 export const TasksPage: React.FC<TasksPageProps> = ({
   tasks,
@@ -19,6 +20,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({
   onEditTask,
   onDataRefresh,
 }) => {
+  const [viewMode, setViewMode] = useState<TaskViewMode>('checklist');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
@@ -27,6 +29,16 @@ export const TasksPage: React.FC<TasksPageProps> = ({
   const handleStatusToggle = async (task: Task) => {
     try {
       await cycleTaskStatus(task);
+      await onDataRefresh();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Erro ao atualizar tarefa.');
+    }
+  };
+
+  const handleToggleChecklist = async (task: Task) => {
+    try {
+      await toggleTaskComplete(task);
       await onDataRefresh();
     } catch (err) {
       console.error(err);
@@ -89,6 +101,8 @@ export const TasksPage: React.FC<TasksPageProps> = ({
   });
 
   const categories: TaskCategory[] = ['Pessoal', 'Trabalho', 'Estudos', 'Saúde', 'Espiritual', 'Geral'];
+  const completedCount = filteredTasks.filter((t) => t.status === 'completed').length;
+  const progressPct = filteredTasks.length > 0 ? Math.round((completedCount / filteredTasks.length) * 100) : 0;
 
   return (
     <div className="page-sheet">
@@ -97,7 +111,29 @@ export const TasksPage: React.FC<TasksPageProps> = ({
           <div className="journal-date-badge">ORGANIZAÇÃO DIÁRIA</div>
           <h1 className="journal-heading-script">Minhas Tarefas</h1>
         </div>
-        <div className="journal-header-actions">
+        <div className="journal-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {/* Seletor de Modo de Visualização: Checklist vs BuJo */}
+          <div className="task-view-mode-tabs">
+            <button
+              type="button"
+              className={`task-view-tab-btn ${viewMode === 'checklist' ? 'active' : ''}`}
+              onClick={() => setViewMode('checklist')}
+              title="Visualização em Checklist com caixas de marcação direta"
+            >
+              <CheckSquare size={14} />
+              <span>Checklist</span>
+            </button>
+            <button
+              type="button"
+              className={`task-view-tab-btn ${viewMode === 'bujo' ? 'active' : ''}`}
+              onClick={() => setViewMode('bujo')}
+              title="Visualização Bullet Journal (○ Pendente, ◐ Em andamento, ● Concluída)"
+            >
+              <span style={{ fontSize: '1rem', lineHeight: 1 }}>○</span>
+              <span>Lista BuJo</span>
+            </button>
+          </div>
+
           <button className="btn-ink-primary" onClick={onOpenNewTask}>
             <Plus size={16} /> Nova Tarefa
           </button>
@@ -168,19 +204,41 @@ export const TasksPage: React.FC<TasksPageProps> = ({
         ))}
       </div>
 
-      {/* LEGENDA BULLET JOURNAL */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '0.65rem 0.9rem', backgroundColor: 'var(--bg-paper-card)', border: '1px solid var(--border-paper)', borderRadius: 'var(--radius-sm)', marginBottom: '1.5rem', fontSize: '0.75rem', color: 'var(--ink-secondary)' }}>
-        <span style={{ fontWeight: 600 }}>Legenda Bullet Journal:</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-          <span style={{ fontSize: '1rem', color: 'var(--ink-secondary)' }}>○</span> Pendente
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-          <span style={{ fontSize: '1rem', color: 'var(--accent-terracotta)' }}>◐</span> Em andamento
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-          <span style={{ fontSize: '1rem', color: 'var(--accent-sage)' }}>●</span> Concluída
-        </span>
-      </div>
+      {/* BARRA DE PROGRESSO EM MODO CHECKLIST */}
+      {viewMode === 'checklist' && filteredTasks.length > 0 && (
+        <div className="task-checklist-progress-card">
+          <div className="task-checklist-progress-text">
+            <span style={{ fontWeight: 600, color: 'var(--ink-primary)', fontSize: '0.82rem' }}>
+              Progresso do Checklist
+            </span>
+            <span style={{ color: 'var(--ink-secondary)', fontSize: '0.8rem', fontVariantNumeric: 'tabular-nums' }}>
+              <strong>{completedCount}</strong> de {filteredTasks.length} concluídas ({progressPct}%)
+            </span>
+          </div>
+          <div className="task-checklist-progress-track">
+            <div
+              className="task-checklist-progress-fill"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* LEGENDA BULLET JOURNAL (SOMENTE EM MODO BUJO) */}
+      {viewMode === 'bujo' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '0.65rem 0.9rem', backgroundColor: 'var(--bg-paper-card)', border: '1px solid var(--border-paper)', borderRadius: 'var(--radius-sm)', marginBottom: '1.5rem', fontSize: '0.75rem', color: 'var(--ink-secondary)' }}>
+          <span style={{ fontWeight: 600 }}>Legenda Bullet Journal:</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span style={{ fontSize: '1rem', color: 'var(--ink-secondary)' }}>○</span> Pendente
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span style={{ fontSize: '1rem', color: 'var(--accent-terracotta)' }}>◐</span> Em andamento
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span style={{ fontSize: '1rem', color: 'var(--accent-sage)' }}>●</span> Concluída
+          </span>
+        </div>
+      )}
 
       {/* LISTA DE TAREFAS */}
       {filteredTasks.length === 0 ? (
@@ -193,22 +251,40 @@ export const TasksPage: React.FC<TasksPageProps> = ({
           </p>
         </div>
       ) : (
-        <div className="task-list">
+        <div className={`task-list ${viewMode === 'checklist' ? 'is-checklist-mode' : ''}`}>
           {filteredTasks.map((t) => (
             <div key={t.id} className={`task-item ${t.status === 'completed' ? 'completed' : ''}`}>
-              <button
-                type="button"
-                className={`bujo-bullet-btn ${t.status}`}
-                onClick={() => handleStatusToggle(t)}
-                title="Clique para alternar status (Pendente -> Em andamento -> Concluída)"
-              >
-                {t.status === 'completed' && '●'}
-                {t.status === 'in_progress' && '◐'}
-                {t.status === 'pending' && '○'}
-              </button>
+              {viewMode === 'checklist' ? (
+                <button
+                  type="button"
+                  className={`checklist-box-btn ${t.status === 'completed' ? 'checked' : ''}`}
+                  onClick={() => handleToggleChecklist(t)}
+                  title={t.status === 'completed' ? 'Marcar como pendente' : 'Marcar como concluída'}
+                  aria-label={`Marcar tarefa ${t.title}`}
+                >
+                  {t.status === 'completed' && <Check size={13} strokeWidth={3} />}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={`bujo-bullet-btn ${t.status}`}
+                  onClick={() => handleStatusToggle(t)}
+                  title="Clique para alternar status (Pendente -> Em andamento -> Concluída)"
+                >
+                  {t.status === 'completed' && '●'}
+                  {t.status === 'in_progress' && '◐'}
+                  {t.status === 'pending' && '○'}
+                </button>
+              )}
 
               <div className="task-content">
-                <div className="task-title">{t.title}</div>
+                <div
+                  className={`task-title ${t.status === 'completed' ? 'struck' : ''}`}
+                  onClick={() => (viewMode === 'checklist' ? handleToggleChecklist(t) : undefined)}
+                  style={{ cursor: viewMode === 'checklist' ? 'pointer' : 'default' }}
+                >
+                  {t.title}
+                </div>
                 {t.description && (
                   <p style={{ fontSize: '0.82rem', color: 'var(--ink-secondary)', marginTop: '0.2rem', whiteSpace: 'pre-line' }}>
                     {t.description}

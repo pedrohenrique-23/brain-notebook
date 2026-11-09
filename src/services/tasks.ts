@@ -85,3 +85,22 @@ export async function cycleTaskStatus(task: Task): Promise<Task> {
     throw toError('atualizar status da tarefa', err);
   }
 }
+
+// Alternar conclusão direta (para visualização em Checklist)
+export async function toggleTaskComplete(task: Task): Promise<Task> {
+  const nextStatus: Task['status'] = task.status === 'completed' ? 'pending' : 'completed';
+
+  try {
+    const { data, error } = await supabase
+      .from(TASKS_TABLE)
+      .update({ status: nextStatus, updated_at: nowIso() })
+      .eq('id', task.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return fromDbRow<Task>(data);
+  } catch (err) {
+    throw toError('alternar conclusão da tarefa', err);
+  }
+}
