@@ -217,7 +217,7 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
       {/* 1. BARRA SUPERIOR DE CABEÇALHO */}
       <div className="bujo-top-header">
         <div>
-          <h1 className="bujo-brand-title">habits & routine</h1>
+          <h1 className="bujo-brand-title">hábitos & rotina</h1>
           <div className="bujo-brand-subtitle">BULLET JOURNAL</div>
         </div>
 
@@ -343,10 +343,10 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
       <div className="bujo-layout-grid">
         {/* COLUNA ESQUERDA: A FOLHA DE CADERNO COM A GRADE DE 30/31 DIAS */}
         <div className="bujo-sheet">
-          {/* FAIXA ARTÍSTICA AQUARELADA COM "habits" */}
+          {/* FAIXA ARTÍSTICA AQUARELADA COM "Hábitos" */}
           <div className="bujo-sheet-header">
             <div className="bujo-watercolor-banner">
-              <h2 className="bujo-sheet-title">habits</h2>
+              <h2 className="bujo-sheet-title">Hábitos</h2>
             </div>
             <div className="bujo-sheet-subtitle">
               BULLET JOURNAL TRACKER &bull; {daysInMonth} dias &bull; preencha com nanquim
@@ -636,7 +636,7 @@ export const HabitsPage: React.FC<HabitsPageProps> = ({
       {/* 4. RODAPÉ INFORMATIVO DA PÁGINA */}
       <div className="bujo-page-footer">
         <div>
-          <strong style={{ color: 'var(--ink-primary)' }}>habits & routine</strong> &mdash; rotina consciente & planejamento di&aacute;rio
+          <strong style={{ color: 'var(--ink-primary)' }}>hábitos & rotina</strong> &mdash; rotina consciente & planejamento di&aacute;rio
         </div>
         <div>&copy; {new Date().getFullYear()} Edi&ccedil;&atilde;o Papel & Tinta</div>
       </div>
