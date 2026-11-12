@@ -28,8 +28,13 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-muted)', fontStyle: 'italic' }}>
-        Abrindo o caderno...
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: 'var(--ink-muted)', fontStyle: 'italic' }}>
+        <img
+          src="/assets/aistudio/Logo_Mindora__Seu_Planner_Pessoal_3695e2ce.png"
+          alt="Mindora"
+          style={{ height: '96px', width: 'auto', mixBlendMode: 'multiply' }}
+        />
+        <span>Abrindo seu planner...</span>
       </div>
     );
   }

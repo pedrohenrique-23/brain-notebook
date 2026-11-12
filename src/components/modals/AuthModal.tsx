@@ -123,10 +123,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, dismissib
 
         <form onSubmit={handleSubmit}>
           <div className="modal-sheet-body">
-            <p style={{ fontSize: '0.85rem', color: 'var(--ink-secondary)', marginBottom: '0.25rem' }}>
+            <div className="auth-logo-wrap">
+              <img
+                src="/assets/aistudio/Logo_Mindora__Seu_Planner_Pessoal_3695e2ce.png"
+                alt="Mindora — Seu Planner Pessoal"
+                className="auth-logo-img"
+              />
+            </div>
+
+            <p style={{ fontSize: '0.85rem', color: 'var(--ink-secondary)', marginBottom: '0.25rem', textAlign: 'center' }}>
               {mode === 'login'
-                ? 'Acesse seu caderno pessoal para ver suas tarefas, hábitos e metas.'
-                : 'Crie seu caderno exclusivo. Cada usuário possui seus dados 100% isolados.'}
+                ? 'Acesse seu planner pessoal para ver suas tarefas, hábitos e metas.'
+                : 'Crie seu planner exclusivo. Cada usuário possui seus dados 100% isolados.'}
             </p>
 
             {mode === 'register' && (

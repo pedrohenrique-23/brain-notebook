@@ -82,7 +82,13 @@ export const HomePage: React.FC<HomePageProps> = ({
       <div className="journal-header">
         <div>
           <div className="journal-date-badge">{dateFormatted}</div>
-          <h1 className="journal-heading-script">Meu Caderno Pessoal</h1>
+          <h1 style={{ margin: 0, lineHeight: 1 }}>
+            <img
+              src="/assets/aistudio/Logo_Mindora__Seu_Planner_Pessoal_3695e2ce.png"
+              alt="Mindora — Seu Planner Pessoal"
+              className="home-logo-img"
+            />
+          </h1>
         </div>
         <div className="journal-header-actions">
           <button className="btn-ink-primary" onClick={onOpenNewTask}>

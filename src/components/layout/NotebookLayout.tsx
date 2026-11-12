@@ -45,8 +45,19 @@ export const NotebookLayout: React.FC<NotebookLayoutProps> = ({
         {/* SIDEBAR: SUMÁRIO DO CADERNO */}
         <aside className="notebook-sidebar">
           <div className="sidebar-header">
-            <h1 className="notebook-title">Meu Caderno</h1>
-            <div className="notebook-subtitle">Diário & Bullet Journal</div>
+            <button
+              type="button"
+              className="sidebar-logo-btn"
+              onClick={() => onPageChange('home')}
+              title="Ir para o início"
+            >
+              <img
+                src="/assets/aistudio/Logo_Mindora__Seu_Planner_Pessoal_3695e2ce.png"
+                alt="Mindora — Seu Planner Pessoal"
+                className="sidebar-logo-img"
+              />
+            </button>
+            <div className="notebook-subtitle">Seu Planner Pessoal</div>
           </div>
 
           <div className="sidebar-nav-title">SUMÁRIO</div>
@@ -95,11 +106,19 @@ export const NotebookLayout: React.FC<NotebookLayoutProps> = ({
         <main className="notebook-main">
           {/* BARRA SUPERIOR MOBILE */}
           <div className="mobile-top-bar">
-            <div>
-              <span style={{ fontFamily: 'var(--font-script)', fontSize: '1.75rem', fontWeight: 700, color: 'var(--ink-primary)' }}>
-                Meu Caderno
-              </span>
-            </div>
+            <button
+              type="button"
+              className="sidebar-logo-btn"
+              onClick={() => onPageChange('home')}
+              title="Ir para o início"
+              style={{ padding: 0 }}
+            >
+              <img
+                src="/assets/aistudio/Logo_Mindora__Seu_Planner_Pessoal_3695e2ce.png"
+                alt="Mindora — Seu Planner Pessoal"
+                className="mobile-logo-img"
+              />
+            </button>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button type="button" className="btn-ghost" onClick={onOpenAuth} title="Conta">
                 <UserIcon size={18} />
